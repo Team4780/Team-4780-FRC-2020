@@ -17,10 +17,10 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
-
+// END IMPORTS
 
 public class Robot extends TimedRobot {
-  // Port Instantiation
+// Port Instantiation
   private static final SPI.Port kGyroPort = SPI.Port.kOnboardCS0;
   private static final int leftVictorPort = 0;
   private static final int rightVictorPort = 1;
@@ -29,7 +29,7 @@ public class Robot extends TimedRobot {
   private static final int kJoystickPort = 0;
   private static final int kJoystick2Port = 1;
 
-// Drive Victorsp's
+// Drive VictorSP's
   VictorSP leftVictorSP = new VictorSP(leftVictorPort);
   VictorSP rightVictorSP = new VictorSP(rightVictorPort);
 
@@ -40,7 +40,7 @@ public class Robot extends TimedRobot {
   boolean turned = true;
   int mustTurnDegree = 0;
 
-// Drivetrain (with victorsp's)
+// Drivetrain (with VictorSP's)
   DifferentialDrive m_myRobot = new DifferentialDrive(leftVictorSP, rightVictorSP);
   private ADXRS450_Gyro m_gyro = new ADXRS450_Gyro(kGyroPort);
   private Joystick m_joystick = new Joystick(kJoystickPort);
