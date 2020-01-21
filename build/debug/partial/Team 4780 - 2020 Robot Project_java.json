@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Team 4780 - 2020 Robot Project (in project Team 4780 - 2020 Robot Project)",
+    "file": "C:\\Users\\Robotics\\Desktop\\IR 2020 Robot Project\\Team 4780 - 2020 Robot Project\\build\\libs\\Team 4780 - 2020 Robot Project.jar",
+    "extensions": [
+      "C:\\Users\\Robotics\\Desktop\\IR 2020 Robot Project\\Team 4780 - 2020 Robot Project\\build\\tmp\\expandedArchives\\halsim_gui-2020.1.2-windowsx86-64.zip_0ded91afab576f356c80ba4c4e7b8310\\windows\\x86-64\\shared\\halsim_gui.dll"
+    ],
+    "librarydir": "C:\\Users\\Robotics\\Desktop\\IR 2020 Robot Project\\Team 4780 - 2020 Robot Project\\build\\tmp\\jniExtractDir",
+    "mainclass": "frc.robot.Main"
+  }
+]
