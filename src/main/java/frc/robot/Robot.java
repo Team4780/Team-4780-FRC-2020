@@ -40,8 +40,8 @@ public class Robot extends TimedRobot {
   private static final int leftVictorPort = 0;
   private static final int rightVictorPort = 1;
   private static final int elevatorSparkPort = 2; // (to be changed to Falcon 500 on competition bot)
-  private static final int intakeSparkPort = 3;
-  private static final int shooterSparkPort = 4;
+  private static final int shooterSparkPort = 3;
+  private static final int intakeSparkPort = 4;
   private static final int indexingSparkPort = 5;
 
 // Joystick Ports
@@ -320,26 +320,26 @@ if(elevatorButtonPressed){
   }
 
 // PixyCam Code
-if(!isCamera)
-state = pixycam.init(1); // if no camera present, try to initialize
-isCamera = state>=0;
+//if(!isCamera)
+//state = pixycam.init(1); // if no camera present, try to initialize
+// isCamera = state>=0;
 
-SmartDashboard.putBoolean("Camera", isCamera);   //publish if we are connected
-pixycam.getCCC().getBlocks(false,255,255); //run getBlocks with arguments to have the camera
-                                           //acquire target data
-ArrayList<Block> blocks = pixycam.getCCC().getBlocks(); //assign the data to an ArrayList for convinience
-if(blocks.size() > 0) {
-  double xcoord = blocks.get(0).getX();       // x position of the largest target
-  double ycoord = blocks.get(0).getY();       // y position of the largest target
-  String data   = blocks.get(0).toString();   // string containing target info
-  SmartDashboard.putBoolean("present", true); // show there is a target present
-  SmartDashboard.putNumber("Xccord",xcoord);
-  SmartDashboard.putNumber("Ycoord", ycoord);
-  SmartDashboard.putString("Data", data );
-}
-else
-  SmartDashboard.putBoolean("present", false);
-SmartDashboard.putNumber("size", blocks.size()); //push to dashboard how many targets are detected
+// SmartDashboard.putBoolean("Camera", isCamera);   //publish if we are connected
+// pixycam.getCCC().getBlocks(false,255,255); //run getBlocks with arguments to have the camera
+//                                            //acquire target data
+// ArrayList<Block> blocks = pixycam.getCCC().getBlocks(); //assign the data to an ArrayList for convinience
+// if(blocks.size() > 0) {
+//   double xcoord = blocks.get(0).getX();       // x position of the largest target
+//   double ycoord = blocks.get(0).getY();       // y position of the largest target
+//   String data   = blocks.get(0).toString();   // string containing target info
+//   SmartDashboard.putBoolean("present", true); // show there is a target present
+//   SmartDashboard.putNumber("Xccord",xcoord);
+//   SmartDashboard.putNumber("Ycoord", ycoord);
+//   SmartDashboard.putString("Data", data );
+// }
+// else
+//   SmartDashboard.putBoolean("present", false);
+// SmartDashboard.putNumber("size", blocks.size()); //push to dashboard how many targets are detected
 }
 // END TELEOP PERIODIC
 
