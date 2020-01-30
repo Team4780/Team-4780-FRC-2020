@@ -7,13 +7,12 @@
 
 package frc.robot;
 
-import java.util.ArrayList;
-
 import edu.wpi.cscore.VideoMode.PixelFormat;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+//import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -24,25 +23,24 @@ import edu.wpi.first.wpilibj.smartdashboard.*;
 import frc.robot.vision.Cameras;
 import frc.robot.vision.PixyCamera;
 import io.github.pseudoresonance.pixy2api.Pixy2;
-import io.github.pseudoresonance.pixy2api.Pixy2CCC.Block;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import io.github.pseudoresonance.pixy2api.Pixy2.LinkType;
 import edu.wpi.first.wpilibj.Encoder;
-//import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
 
 // END IMPORTS
 
 public class Robot extends TimedRobot {
 // Port Instantiation
-  private static final SPI.Port kGyroPort = SPI.Port.kOnboardCS0;
+//  private static final SPI.Port kGyroPort = SPI.Port.kOnboardCS0;
   private static final int leftVictorPort = 0;
   private static final int rightVictorPort = 1;
-  private static final int elevatorSparkPort = 2; // (to be changed to Falcon 500 on competition bot)
+  private static final int elevatorSparkPort = 2;
   private static final int shooterSparkPort = 3;
   private static final int intakeSparkPort = 4;
-  private static final int indexingSparkPort = 5;
+  private static final int falconPort = 5;
 
 // Joystick Ports
   private static final int kJoystickPort = 0;
@@ -63,14 +61,14 @@ public class Robot extends TimedRobot {
 // Intake Spark
   Spark intakeSpark = new Spark(intakeSparkPort);  
 
-// Indexing Spark
-  Spark indexingSpark = new Spark(indexingSparkPort);
-
 // Elevator Spark
   Spark elevatorSpark = new Spark(elevatorSparkPort);
 
 // Shooter Spark
   Spark shooterSpark = new Spark(shooterSparkPort);
+
+// Falcon Shooter
+ // TalonFX shooterFalcon = new TalonFX(falconPort);
 
 // Gyro Instantiation 
   int P, I, D = 1;
@@ -79,22 +77,18 @@ public class Robot extends TimedRobot {
   boolean turned = true;
   int mustTurnDegree = 0;
   private static final double kAngleSetpoint = 0.0;
-  private ADXRS450_Gyro m_gyro = new ADXRS450_Gyro(kGyroPort);
+//  private ADXRS450_Gyro m_gyro = new ADXRS450_Gyro(kGyroPort);
 
 //Joystick Instantiation
   private Joystick m_joystick = new Joystick(kJoystickPort);
   private Joystick m_joystick2 = new Joystick(kJoystick2Port);
 
 // DriveTrain Creation
-  private DifferentialDrive m_myRobot
-    = new DifferentialDrive(leftVictorSP, rightVictorSP);    
+DifferentialDrive m_myRobot
+= new DifferentialDrive(leftVictorSP, rightVictorSP);   
 
 // Encoder Creation
   public static Encoder elevatorEncoder;
-
-// Pneumatic's Creation
-//  public static Compressor compressor;
-  public static DoubleSolenoid indexPiston;
 
 // Elevator Speed Setting
   double elevatorSpeedFast = -0.75;  //"fast" elevator speed (In the middle)
@@ -120,10 +114,8 @@ public class Robot extends TimedRobot {
 // Timer for autonomous
   public double timer = 0;
 
-// PixyCam Creation
-  private Pixy2 pixycam;
-  boolean isCamera = false;
-  int state=-1;
+// Pixycam Creation
+  private static Pixy2 pixy;
   
 // END TIMED ROBOT METHOD
 
@@ -133,31 +125,47 @@ public void robotInit() {
   m_joystick = new Joystick(0);
   m_joystick2 = new Joystick(1);
 
+// Shooter Falcon Ramping Control
+//  shooterFalcon.configOpenloopRamp(3.5);
+
 // Encoder Instantiation
   elevatorEncoder = new Encoder(4, 5, true, Encoder.EncodingType.k4X);
   elevatorEncoder.setDistancePerPulse((Math.PI * 1.804) / 192);
 
-// Pneumatics Instantiation
-//  compressor = new Compressor(1);
-  indexPiston = new DoubleSolenoid(4, 5);
+// Camera Instantiation
+  CameraServer camera = CameraServer.getInstance();
+    VideoSource usbCam = camera.startAutomaticCapture("cam0", 0);
+      usbCam.setVideoMode(PixelFormat.kYUYV, 320, 240, 30);
+  CameraServer camera2 = CameraServer.getInstance();
+    VideoSource usbCam2 = camera2.startAutomaticCapture("cam1", 1);
+      usbCam2.setVideoMode(PixelFormat.kYUYV, 320, 240, 30);
 
-// Camera Instantiation (moved to Cameras.java)  
-  Cameras.initCameras();
-
-// Gyro
-  m_gyro.calibrate();
+// Gyro Cal
+//  m_gyro.calibrate();
 
 // PixyCam Initialization
-// (run pixycamera.java somehow)
-
-//  pixycam.setLamp((byte) 1, (byte) 1); // Turns the LEDs on
-//  pixycam.setLED(255, 255, 255); // Sets the RGB LED to full white
+  // Robot.pixy = Pixy2.createInstance(LinkType.SPI);
+//  SmartDashboard.putBoolean("PixyCam Status:", pixy.getVersion() > 0);
 
 // Creating Dropdown Choices in Shuffleboard
   m_chooser.setDefaultOption("Drive Straight - Auto Line", kAutoLine);
   m_chooser.addOption("Drive Straight - Turn Right", kAutoLineRight);
   m_chooser.addOption("Drive Straight - Turn Left", kAutoLineLeft);
   SmartDashboard.putData("Auto Chooser", m_chooser);
+
+// Falcon Velocity Control
+  // shooterFalcon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
+  // shooterFalcon.setSensorPhase(true);
+  //   /* Config the peak and nominal outputs */
+  // shooterFalcon.configNominalOutputForward(0, Constants.kTimeoutMs);
+  // shooterFalcon.configNominalOutputReverse(0, Constants.kTimeoutMs);
+  // shooterFalcon.configPeakOutputForward(1, Constants.kTimeoutMs);
+  // shooterFalcon.configPeakOutputReverse(-1, Constants.kTimeoutMs);
+  //   /* Config the Velocity closed loop gains in slot0 */
+  // shooterFalcon.config_kF(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kF, Constants.kTimeoutMs);
+  // shooterFalcon.config_kP(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kP, Constants.kTimeoutMs);
+  // shooterFalcon.config_kI(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kI, Constants.kTimeoutMs);
+  // shooterFalcon.config_kD(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kD, Constants.kTimeoutMs);
 }
 
 // END ROBOT INIT METHOD
@@ -166,7 +174,7 @@ public void robotInit() {
 @Override
 public void robotPeriodic() {
 // Post Encoder Distance to Shuffleboard
-  SmartDashboard.putNumber("Encoder Distance", elevatorEncoder.getDistance());
+//  SmartDashboard.putNumber("Encoder Distance", elevatorEncoder.getDistance());
 }
 
 // END ROBOT PERIODIC METHOD6
@@ -187,12 +195,14 @@ public void autonomousPeriodic() {
   switch (m_autoSelected) {
     case kAutoLine:
       default:
-      if (timer<timer+5){
-        m_myRobot.tankDrive(0.25, -0.25);
-      }
-      else{
-        m_myRobot.tankDrive(0, 0);
-      }
+      // if (timer<timer+5){
+      //   m_myRobot.tankDrive(0.25, -0.25);
+      // }
+      // else{
+      //   m_myRobot.tankDrive(0, 0);
+      // }
+      //drivetrain run
+      m_myRobot.tankDrive(1, 1);
       break;
 // ---------------------
     case kAutoLineRight:
@@ -234,13 +244,13 @@ public void autonomousPeriodic() {
 
 
 //Gyro Math Method
-public void turnDegrees(int degree) {
-  if(turned)return;
-  angle = m_gyro.getAngle() % 360;
-  if(angle-10 > degree)m_myRobot.arcadeDrive(0.8, (angle - degree)*kP);
-  else if(angle+10 < degree)m_myRobot.arcadeDrive(0.8, (angle + degree)*kP);
-  else turned = true;
-}
+// public void turnDegrees(int degree) {
+//   if(turned)return;
+//   angle = m_gyro.getAngle() % 360;
+//   if(angle-10 > degree)m_myRobot.arcadeDrive(0.8, (angle - degree)*kP);
+//   else if(angle+10 < degree)m_myRobot.arcadeDrive(0.8, (angle + degree)*kP);
+//   else turned = true;
+// }
 
 // END GYRO MATH METHOD
 
@@ -249,13 +259,12 @@ public void turnDegrees(int degree) {
 public void teleopPeriodic() {
 //Gyro Math (tested & working as of 2/9/19) (old math is commented out as of 1/6/20)
   m_myRobot.arcadeDrive(m_joystick.getY()*0.8, m_joystick.getX()*0.8);
-
-  if(m_joystick.getRawButton(1))turned = true;
-  if(m_joystick.getPOV() != -1){
-  turned = false;
-  mustTurnDegree = m_joystick.getPOV();
-  }
-  if(!turned)turnDegrees(mustTurnDegree);
+  // if(m_joystick.getRawButton(1))turned = true;
+  // if(m_joystick.getPOV() != -1){
+  // turned = false;
+  // mustTurnDegree = m_joystick.getPOV();
+  // }
+  // if(!turned)turnDegrees(mustTurnDegree);
 
 // Intake/Outtake Control Statements
   if (m_joystick2.getRawButton(bPowerCellIntake)) {
@@ -266,16 +275,16 @@ public void teleopPeriodic() {
   }
 
 // Shooter Spark Control Statement
-  if (m_joystick2.getRawButton(bShooterOuttake)) {
-    shooterSpark.set(1);
-  }
-  else {
-    shooterSpark.set(0);
-  }
+  // if (m_joystick2.getRawButton(bShooterOuttake)) {
+  //   shooterFalcon.set(ControlMode.MotionMagic, 1);
+  // }
+  // else {
+  //   shooterFalcon.set(ControlMode.MotionMagic, 0);
+  // }
 
 boolean elevatorButtonPressed = (m_joystick2.getRawButton(bHomeLevel)) || (m_joystick2.getRawButton(bHatchLevel2)) || (m_joystick2.getRawButton(bHatchLevel3)) || (m_joystick.getRawButton(bDriveLevel));
 
-//Encoded Elevator "Final" Code - Rishikesh & Kyle 3/21/19 (PA Day 1) - [WORKING 3/21/19]
+//Encoded Elevator "Final" Code - Rishikesh & Kyle 3/21/19 (GPR Day 1) - [WORKING 3/21/19]
 if(Math.abs(elevatorEncoder.getDistance()-targetDistance) < 2){
   elevatorSpeedAct = elevatorSpeedSlow;
 }
@@ -320,6 +329,14 @@ if(elevatorButtonPressed){
   }
 
 // PixyCam Code
+  // if(m_joystick2.getRawButton(1)){
+  //   pixy.setLamp((byte) 1, (byte) 1); // Turns the LEDs on
+  //   pixy.setLED(255, 255, 255); // Sets the RGB LED to full white
+  // }
+  // else{
+  //   pixy.setLamp((byte) 0, (byte) 0);
+  //   pixy.setLED(0, 0, 0);  
+  // }
 //if(!isCamera)
 //state = pixycam.init(1); // if no camera present, try to initialize
 // isCamera = state>=0;
@@ -340,6 +357,14 @@ if(elevatorButtonPressed){
 // else
 //   SmartDashboard.putBoolean("present", false);
 // SmartDashboard.putNumber("size", blocks.size()); //push to dashboard how many targets are detected
+// if(RobotState.isEnabled() || RobotState.isDisabled()){
+//   pixy.setLamp((byte) 1, (byte) 1); // Turns the LEDs on
+//   pixy.setLED(255, 255, 255); // Sets the RGB LED to full white
+//   }
+//   else{
+  // pixy.setLamp((byte) 0, (byte) 0);
+  // pixy.setLED(0, 0, 0);
+  // } 
 }
 // END TELEOP PERIODIC
 

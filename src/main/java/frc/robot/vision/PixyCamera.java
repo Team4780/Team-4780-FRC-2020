@@ -12,28 +12,29 @@ public class PixyCamera {
 	private final Pixy2 pixy;
 	private boolean laststate = false;
 	public final static int PixyResult = 0;
+	//public m_joystick2 = Robot.m_joystick2;
 
 	public PixyCamera(Link link) {
-		pixy = Pixy2.createInstance(LinkType.I2C);
+		pixy = Pixy2.createInstance(LinkType.SPI);
 		pixy.init();
 	}
 
 	public void run() {
+		
 
 		final int pixystatus = pixy.init(PixyResult); // Checks for Pixy2 Error (If issue, Robot is Not Effected)
 		if (pixystatus == 0) {
 
 			final int count = pixy.getCCC().getBlocks(false, Pixy2CCC.CCC_SIG1, 25);
 
-			TargetBall.run(count); // Track Orange Ball Code Run
-
+			TargetBall.run(count); // Track Orange Ball Code Run 
+			  }
 		}
 
 		// pixy.getCCC().getBlocks(false, Pixy2CCC.CCC_SIG1, 25);
 		// ArrayList<Block> blocks = pixy.getCCC().getBlocks();
 		// pixy.getCCC().getBlocks(false, Pixy2CCC.CCC_SIG1, 25);
-
-	}
+		
 
 	public void light(boolean state) {
 		final int pixystatus = pixy.init(PixyResult); // Checks for Pixy2 Error (If issue, Robot is Not Effected)
