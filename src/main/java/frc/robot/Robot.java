@@ -12,7 +12,6 @@ import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
 //import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -281,52 +280,6 @@ public void teleopPeriodic() {
   // else {
   //   shooterFalcon.set(ControlMode.MotionMagic, 0);
   // }
-
-boolean elevatorButtonPressed = (m_joystick2.getRawButton(bHomeLevel)) || (m_joystick2.getRawButton(bHatchLevel2)) || (m_joystick2.getRawButton(bHatchLevel3)) || (m_joystick.getRawButton(bDriveLevel));
-
-//Encoded Elevator "Final" Code - Rishikesh & Kyle 3/21/19 (GPR Day 1) - [WORKING 3/21/19]
-if(Math.abs(elevatorEncoder.getDistance()-targetDistance) < 2){
-  elevatorSpeedAct = elevatorSpeedSlow;
-}
-else{
-  elevatorSpeedAct = elevatorSpeedFast;
-}
-
-double joystickYAxis = m_joystick2.getY();    
-   
-if (joystickYAxis>0 && elevatorEncoder.getDistance() < 1 || joystickYAxis<0 && elevatorEncoder.getDistance() > 26)
- {
-   elevatorSpark.set(0); 
- }
-else
- {
-   if (m_joystick2.getRawButton(5) || m_joystick2.getRawButton(6) || m_joystick2.getRawButton(7) || m_joystick2.getRawButton(8)  || m_joystick.getRawButton(2)) 
-   {
-     
-   }
-   else{
-     elevatorSpark.set(m_joystick2.getY()*0.5);
-   }
-  }
-
-if(elevatorButtonPressed){
-
-  boolean TooLow = (elevatorEncoder.getDistance()-targetDistance) < -0.2;
-  boolean TooHigh = (elevatorEncoder.getDistance()-targetDistance) > 0.2;
-  
-    if (TooLow) {
-      elevatorSpark.set(elevatorSpeedAct);
-    }
-    else if (TooHigh){
-      elevatorSpark.set(-elevatorSpeedAct*0.5);
-    }
-    else {
-      elevatorSpark.set(elevatorSpeedStop);
-    }
-  }
-  else if (m_joystick2.getY() == 0){
-    elevatorSpark.set(0);
-  }
 
 // PixyCam Code
   // if(m_joystick2.getRawButton(1)){
