@@ -23,7 +23,9 @@ import frc.robot.vision.Cameras;
 import frc.robot.vision.PixyCamera;
 import io.github.pseudoresonance.pixy2api.Pixy2;
 import io.github.pseudoresonance.pixy2api.Pixy2.LinkType;
+import io.github.pseudoresonance.pixy2api.Pixy2CCC.Block;
 import edu.wpi.first.wpilibj.Encoder;
+import java.util.ArrayList;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -36,7 +38,6 @@ public class Robot extends TimedRobot {
 //  private static final SPI.Port kGyroPort = SPI.Port.kOnboardCS0;
   private static final int leftVictorPort = 0;
   private static final int rightVictorPort = 1;
-  private static final int elevatorSparkPort = 2;
   private static final int shooterSparkPort = 3;
   private static final int intakeSparkPort = 4;
   private static final int falconPort = 5;
@@ -59,9 +60,6 @@ public class Robot extends TimedRobot {
  
 // Intake Spark
   Spark intakeSpark = new Spark(intakeSparkPort);  
-
-// Elevator Spark
-  Spark elevatorSpark = new Spark(elevatorSparkPort);
 
 // Shooter Spark
   Spark shooterSpark = new Spark(shooterSparkPort);
@@ -114,7 +112,11 @@ DifferentialDrive m_myRobot
   public double timer = 0;
 
 // Pixycam Creation
-  private static Pixy2 pixy;
+private Pixy2 pixycam;
+boolean isCamera = false;
+// private SPILink spi;
+int state=- 1;
+
   
 // END TIMED ROBOT METHOD
 
@@ -143,8 +145,7 @@ public void robotInit() {
 //  m_gyro.calibrate();
 
 // PixyCam Initialization
-  // Robot.pixy = Pixy2.createInstance(LinkType.SPI);
-//  SmartDashboard.putBoolean("PixyCam Status:", pixy.getVersion() > 0);
+  pixycam = Pixy2.createInstance(Pixy2.LinkType.SPI);
 
 // Creating Dropdown Choices in Shuffleboard
   m_chooser.setDefaultOption("Drive Straight - Auto Line", kAutoLine);
@@ -266,12 +267,12 @@ public void teleopPeriodic() {
   // if(!turned)turnDegrees(mustTurnDegree);
 
 // Intake/Outtake Control Statements
-  if (m_joystick2.getRawButton(bPowerCellIntake)) {
-    intakeSpark.set(0.5);
-  } 
-  else {
-    intakeSpark.set(0);
-  }
+ // if (m_joystick2.getRawButton(bPowerCellIntake)) {
+ //   intakeSpark.set(0.5);
+  //} 
+  //else {
+   // intakeSpark.set(0);
+  // }
 
 // Shooter Spark Control Statement
   // if (m_joystick2.getRawButton(bShooterOuttake)) {
@@ -282,43 +283,36 @@ public void teleopPeriodic() {
   // }
 
 // PixyCam Code
-  // if(m_joystick2.getRawButton(1)){
-  //   pixy.setLamp((byte) 1, (byte) 1); // Turns the LEDs on
-  //   pixy.setLED(255, 255, 255); // Sets the RGB LED to full white
-  // }
-  // else{
-  //   pixy.setLamp((byte) 0, (byte) 0);
-  //   pixy.setLED(0, 0, 0);  
-  // }
-//if(!isCamera)
-//state = pixycam.init(1); // if no camera present, try to initialize
-// isCamera = state>=0;
-
-// SmartDashboard.putBoolean("Camera", isCamera);   //publish if we are connected
-// pixycam.getCCC().getBlocks(false,255,255); //run getBlocks with arguments to have the camera
-//                                            //acquire target data
-// ArrayList<Block> blocks = pixycam.getCCC().getBlocks(); //assign the data to an ArrayList for convinience
-// if(blocks.size() > 0) {
-//   double xcoord = blocks.get(0).getX();       // x position of the largest target
-//   double ycoord = blocks.get(0).getY();       // y position of the largest target
-//   String data   = blocks.get(0).toString();   // string containing target info
-//   SmartDashboard.putBoolean("present", true); // show there is a target present
-//   SmartDashboard.putNumber("Xccord",xcoord);
-//   SmartDashboard.putNumber("Ycoord", ycoord);
-//   SmartDashboard.putString("Data", data );
-// }
-// else
-//   SmartDashboard.putBoolean("present", false);
-// SmartDashboard.putNumber("size", blocks.size()); //push to dashboard how many targets are detected
-// if(RobotState.isEnabled() || RobotState.isDisabled()){
-//   pixy.setLamp((byte) 1, (byte) 1); // Turns the LEDs on
-//   pixy.setLED(255, 255, 255); // Sets the RGB LED to full white
-//   }
-//   else{
-  // pixy.setLamp((byte) 0, (byte) 0);
-  // pixy.setLED(0, 0, 0);
-  // } 
-}
+   if(m_joystick2.getRawButton(1)){
+     pixycam.setLamp((byte) 1, (byte) 1); // Turns the LEDs on
+     pixycam.setLED(255, 255, 255); // Sets the RGB LED to full white
+   }
+   else{
+     pixycam.setLamp((byte) 0, (byte) 0);
+     pixycam.setLED(0, 0, 0);  
+   }
+  
+  if (!isCamera)
+ state = pixycam.init( 1 ); // if no camera present, try to initialize
+ isCamera = state>= 0;
+ SmartDashboard.putBoolean( "Camera" , isCamera); //publish if we are connected
+ pixycam.getCCC().getBlocks( false , 255 , 255 ); //run getBlocks with arguments to have the camera
+ //acquire target data
+ ArrayList<Block> blocks = pixycam.getCCC().getBlocks(); //assign the data to an ArrayList for convinience
+ if (blocks.size() > 0 )
+ {
+ double xcoord = blocks.get( 0 ).getX(); // x position of the largest target
+ double ycoord = blocks.get( 0 ).getY(); // y position of the largest target
+ String data = blocks.get( 0 ).toString(); // string containing target info
+ SmartDashboard.putBoolean( "present" , true ); // show there is a target present
+ SmartDashboard.putNumber( "Xccord" ,xcoord);
+ SmartDashboard.putNumber( "Ycoord" , ycoord);
+ SmartDashboard.putString( "Data" , data );
+ }
+ else
+ SmartDashboard.putBoolean( "present" , false );
+ SmartDashboard.putNumber( "size" , blocks.size()); //push to dashboard how many targets are detected
+ }
 // END TELEOP PERIODIC
 
 
