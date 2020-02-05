@@ -81,8 +81,8 @@ public class Robot extends TimedRobot {
   private Joystick m_joystick2 = new Joystick(kJoystick2Port);
 
 // DriveTrain Creation
-DifferentialDrive m_myRobot
-= new DifferentialDrive(leftVictorSP, rightVictorSP);   
+  DifferentialDrive m_myRobot
+  = new DifferentialDrive(leftVictorSP, rightVictorSP);   
 
 // Encoder Creation
   public static Encoder elevatorEncoder;
@@ -112,10 +112,10 @@ DifferentialDrive m_myRobot
   public double timer = 0;
 
 // Pixycam Creation
-private Pixy2 pixycam;
-boolean isCamera = false;
-// private SPILink spi;
-int state=- 1;
+  private Pixy2 pixycam;
+  boolean isCamera = false;
+  // private SPILink spi;
+  int state=- 1;
 
   
 // END TIMED ROBOT METHOD
@@ -127,7 +127,7 @@ public void robotInit() {
   m_joystick2 = new Joystick(1);
 
 // Shooter Falcon Ramping Control
-//  shooterFalcon.configOpenloopRamp(3.5);
+  // shooterFalcon.configOpenloopRamp(3.5);
 
 // Encoder Instantiation
   elevatorEncoder = new Encoder(4, 5, true, Encoder.EncodingType.k4X);
@@ -142,7 +142,7 @@ public void robotInit() {
       usbCam2.setVideoMode(PixelFormat.kYUYV, 320, 240, 30);
 
 // Gyro Cal
-//  m_gyro.calibrate();
+  //  m_gyro.calibrate();
 
 // PixyCam Initialization
   pixycam = Pixy2.createInstance(Pixy2.LinkType.SPI);
@@ -173,8 +173,6 @@ public void robotInit() {
 
 @Override
 public void robotPeriodic() {
-// Post Encoder Distance to Shuffleboard
-//  SmartDashboard.putNumber("Encoder Distance", elevatorEncoder.getDistance());
 }
 
 // END ROBOT PERIODIC METHOD6
@@ -195,46 +193,12 @@ public void autonomousPeriodic() {
   switch (m_autoSelected) {
     case kAutoLine:
       default:
-      // if (timer<timer+5){
-      //   m_myRobot.tankDrive(0.25, -0.25);
-      // }
-      // else{
-      //   m_myRobot.tankDrive(0, 0);
-      // }
-      //drivetrain run
-      m_myRobot.tankDrive(1, 1);
       break;
 // ---------------------
     case kAutoLineRight:
-      if (Timer.getMatchTime()<timer+5){
-        m_myRobot.tankDrive(0.25, -0.25);
-      }
-      else{
-        m_myRobot.tankDrive(0, 0);
-      }
-      targetDistance = hatchLevel2;
-      if (targetDistance == hatchLevel2) {
-        intakeSpark.set(1);
-      } 
-      else {
-        intakeSpark.set(0);
-      }
       break;
 // ---------------------
     case kAutoLineLeft:
-      if (Timer.getMatchTime()<timer+5){
-        m_myRobot.tankDrive(0.25, -0.25);
-      }
-      else{
-        m_myRobot.tankDrive(0, 0);
-      }
-      targetDistance = hatchLevel3;
-      if (targetDistance == hatchLevel3) {
-        intakeSpark.set(1);
-      } 
-      else {
-        intakeSpark.set(0);
-      }
       break;
 // ---------------------
   }
@@ -293,25 +257,24 @@ public void teleopPeriodic() {
    }
   
   if (!isCamera)
- state = pixycam.init( 1 ); // if no camera present, try to initialize
- isCamera = state>= 0;
- SmartDashboard.putBoolean( "Camera" , isCamera); //publish if we are connected
- pixycam.getCCC().getBlocks( false , 255 , 255 ); //run getBlocks with arguments to have the camera
- //acquire target data
- ArrayList<Block> blocks = pixycam.getCCC().getBlocks(); //assign the data to an ArrayList for convinience
- if (blocks.size() > 0 )
- {
- double xcoord = blocks.get( 0 ).getX(); // x position of the largest target
- double ycoord = blocks.get( 0 ).getY(); // y position of the largest target
- String data = blocks.get( 0 ).toString(); // string containing target info
- SmartDashboard.putBoolean( "present" , true ); // show there is a target present
- SmartDashboard.putNumber( "Xccord" ,xcoord);
- SmartDashboard.putNumber( "Ycoord" , ycoord);
- SmartDashboard.putString( "Data" , data );
+  state = pixycam.init( 1 ); // if no camera present, try to initialize
+  isCamera = state>= 0;
+  SmartDashboard.putBoolean( "Camera" , isCamera); //publish if we are connected
+  pixycam.getCCC().getBlocks( false , 255 , 255 ); //run getBlocks with arguments to have the camera
+  //acquire target data
+  ArrayList<Block> blocks = pixycam.getCCC().getBlocks(); //assign the data to an ArrayList for convenience
+  if (blocks.size() > 0 ) {
+  double xcoord = blocks.get( 0 ).getX(); // x position of the largest target
+  double ycoord = blocks.get( 0 ).getY(); // y position of the largest target
+  String data = blocks.get( 0 ).toString(); // string containing target info
+  SmartDashboard.putBoolean( "present" , true ); // show there is a target present
+    SmartDashboard.putNumber( "Xccord" ,xcoord);
+  SmartDashboard.putNumber( "Ycoord" , ycoord);
+    SmartDashboard.putString( "Data" , data );
  }
- else
- SmartDashboard.putBoolean( "present" , false );
- SmartDashboard.putNumber( "size" , blocks.size()); //push to dashboard how many targets are detected
+  else
+  SmartDashboard.putBoolean( "present" , false );
+  SmartDashboard.putNumber( "size" , blocks.size()); //push to dashboard how many targets are detected
  }
 // END TELEOP PERIODIC
 
