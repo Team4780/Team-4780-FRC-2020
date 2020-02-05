@@ -1,4 +1,4 @@
 # Team-4780-FRC-2020
-Code for our 2020 Season: Written by Rishikesh Desai
+Code for our 2020 Season: Written by [Rishikesh Desai](https://github.com/TrueSlayr)
 
-Direct Download link: https://tinyurl.com/syda2cc
+Direct Download link: https://tinyurl.com/wdqr6rb
