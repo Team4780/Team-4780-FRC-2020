@@ -10,21 +10,17 @@ package frc.robot;
 import edu.wpi.cscore.VideoMode.PixelFormat;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
-//import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.VictorSP;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.*;
-import frc.robot.vision.Cameras;
 import frc.robot.vision.PixyCamera;
+import frc.subsystems.DriveTrain;
 import io.github.pseudoresonance.pixy2api.Pixy2;
 import io.github.pseudoresonance.pixy2api.Pixy2.LinkType;
 import io.github.pseudoresonance.pixy2api.Pixy2CCC.Block;
-import edu.wpi.first.wpilibj.Encoder;
 import java.util.ArrayList;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
@@ -34,38 +30,40 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 // END IMPORTS
 
 public class Robot extends TimedRobot {
-// Port Instantiation
-//  private static final SPI.Port kGyroPort = SPI.Port.kOnboardCS0;
-  private static final int leftVictorPort = 0;
-  private static final int rightVictorPort = 1;
-  private static final int shooterSparkPort = 3;
-  private static final int intakeSparkPort = 4;
-  private static final int falconPort = 5;
 
-// Joystick Ports
+// Basic Function Instantiation
+  // Drive VictorSP's
+    VictorSP leftVictorSP = new VictorSP(leftVictorPort);
+      public static final int leftVictorPort = 0;
+
+    VictorSP rightVictorSP = new VictorSP(rightVictorPort);
+      public static final int rightVictorPort = 1;
+
+  // Shooter Spark
+    Spark shooterSpark = new Spark(shooterSparkPort); 
+      public static final int shooterSparkPort = 3;
+
+  // Intake Spark
+    Spark intakeSpark = new Spark(intakeSparkPort);  
+      public static final int intakeSparkPort = 4;
+
+  // Falcon Shooter
+  // TalonFX shooterFalcon = new TalonFX(falconPort);
+  //  public static final int falconPort = 5;
+
+  // Gyro
+  //  public static final SPI.Port kGyroPort = SPI.Port.kOnboardCS0;
+
+// DriveTrain
+  public static DriveTrain drivetrain;
+
+  // Joystick Ports
   private static final int kJoystickPort = 0;
   private static final int kJoystick2Port = 1;
 
 // Button set-up
   private static final int bPowerCellIntake = 1;
   private static final int bShooterOuttake = 2;
-  private static final int bHatchLevel2 = 7;
-  private static final int bHatchLevel3 = 5;
-  private static final int bDriveLevel = 2;
-  private static final int bHomeLevel = 8;
-
-// Drive VictorSP's
-  VictorSP leftVictorSP = new VictorSP(leftVictorPort);
-  VictorSP rightVictorSP = new VictorSP(rightVictorPort);
- 
-// Intake Spark
-  Spark intakeSpark = new Spark(intakeSparkPort);  
-
-// Shooter Spark
-  Spark shooterSpark = new Spark(shooterSparkPort);
-
-// Falcon Shooter
- // TalonFX shooterFalcon = new TalonFX(falconPort);
 
 // Gyro Instantiation 
   int P, I, D = 1;
@@ -79,27 +77,6 @@ public class Robot extends TimedRobot {
 //Joystick Instantiation
   private Joystick m_joystick = new Joystick(kJoystickPort);
   private Joystick m_joystick2 = new Joystick(kJoystick2Port);
-
-// DriveTrain Creation
-  DifferentialDrive m_myRobot
-  = new DifferentialDrive(leftVictorSP, rightVictorSP);   
-
-// Encoder Creation
-  public static Encoder elevatorEncoder;
-
-// Elevator Speed Setting
-  double elevatorSpeedFast = -0.75;  //"fast" elevator speed (In the middle)
-  double elevatorSpeedSlow = -0.4; //"slow" elevator speed (approaching hard stops)
-  double elevatorSpeedStop = -0.25;
-  double elevatorSpeedAct = 0; //speed elevator is actually set to (either the fast or slow) 
-
-// Encoder Level Set up
-  boolean elevatorButtonPressed = false;
-  double targetDistance = 0;
-  double homeLevel = 1.335;
-  double hatchLevel2 = 12; 
-  double hatchLevel3 = 25.5;
-  double driveLevel = 3;
 
 // Auto Choices in Shuffleboard
   private static final String kAutoLine = "Drive Straight - Auto Line";
@@ -126,12 +103,11 @@ public void robotInit() {
   m_joystick = new Joystick(0);
   m_joystick2 = new Joystick(1);
 
-// Shooter Falcon Ramping Control
-  // shooterFalcon.configOpenloopRamp(3.5);
+// DriveTrain
+  drivetrain = new DriveTrain();
 
-// Encoder Instantiation
-  elevatorEncoder = new Encoder(4, 5, true, Encoder.EncodingType.k4X);
-  elevatorEncoder.setDistancePerPulse((Math.PI * 1.804) / 192);
+// Shooter Falcon Ramping Control
+  // RobotMap.shooterFalcon.configOpenloopRamp(3.5);
 
 // Camera Instantiation
   CameraServer camera = CameraServer.getInstance();
@@ -222,7 +198,6 @@ public void autonomousPeriodic() {
 @Override
 public void teleopPeriodic() {
 //Gyro Math (tested & working as of 2/9/19) (old math is commented out as of 1/6/20)
-  m_myRobot.arcadeDrive(m_joystick.getY()*0.8, m_joystick.getX()*0.8);
   // if(m_joystick.getRawButton(1))turned = true;
   // if(m_joystick.getPOV() != -1){
   // turned = false;
@@ -245,6 +220,8 @@ public void teleopPeriodic() {
   // else {
   //   shooterFalcon.set(ControlMode.MotionMagic, 0);
   // }
+// Drivetrain
+  drivetrain.drive(m_joystick);
 
 // PixyCam Code
    if(m_joystick2.getRawButton(1)){
@@ -253,15 +230,14 @@ public void teleopPeriodic() {
    }
    else{
      pixycam.setLamp((byte) 0, (byte) 0);
-     pixycam.setLED(0, 0, 0);  
+     pixycam.setLED(0, 0, 0);
    }
   
   if (!isCamera)
   state = pixycam.init( 1 ); // if no camera present, try to initialize
   isCamera = state>= 0;
   SmartDashboard.putBoolean( "Camera" , isCamera); //publish if we are connected
-  pixycam.getCCC().getBlocks( false , 255 , 255 ); //run getBlocks with arguments to have the camera
-  //acquire target data
+  pixycam.getCCC().getBlocks( false , 255 , 255 ); //run getBlocks with arguments to have the camera acquire target data
   ArrayList<Block> blocks = pixycam.getCCC().getBlocks(); //assign the data to an ArrayList for convenience
   if (blocks.size() > 0 ) {
   double xcoord = blocks.get( 0 ).getX(); // x position of the largest target
