@@ -7,6 +7,7 @@
 
 package frc.robot;
 
+import java.util.ArrayList;
 import edu.wpi.cscore.VideoMode.PixelFormat;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
@@ -16,12 +17,11 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.smartdashboard.*;
-import frc.robot.vision.PixyCamera;
 import frc.subsystems.DriveTrain;
 import io.github.pseudoresonance.pixy2api.Pixy2;
 import io.github.pseudoresonance.pixy2api.Pixy2.LinkType;
 import io.github.pseudoresonance.pixy2api.Pixy2CCC.Block;
-import java.util.ArrayList;
+import io.github.pseudoresonance.pixy2api.links.SPILink;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -57,7 +57,7 @@ public class Robot extends TimedRobot {
 // DriveTrain
   public static DriveTrain drivetrain;
 
-  // Joystick Ports
+// Joystick Ports
   private static final int kJoystickPort = 0;
   private static final int kJoystick2Port = 1;
 
@@ -90,6 +90,7 @@ public class Robot extends TimedRobot {
 
 // Pixycam Creation
   private Pixy2 pixycam;
+  Pixy2 pixy = Pixy2.createInstance(new SPILink());
   boolean isCamera = false;
   // private SPILink spi;
   int state=- 1;
@@ -121,7 +122,7 @@ public void robotInit() {
   //  m_gyro.calibrate();
 
 // PixyCam Initialization
-  pixycam = Pixy2.createInstance(Pixy2.LinkType.SPI);
+  pixy.init();
 
 // Creating Dropdown Choices in Shuffleboard
   m_chooser.setDefaultOption("Drive Straight - Auto Line", kAutoLine);
