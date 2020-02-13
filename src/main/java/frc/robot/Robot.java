@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.smartdashboard.*;
+import frc.robot.vision.PixyCam;
 import frc.subsystems.DriveTrain;
 import io.github.pseudoresonance.pixy2api.Pixy2;
 import io.github.pseudoresonance.pixy2api.Pixy2.LinkType;
@@ -51,7 +52,7 @@ public class Robot extends TimedRobot {
   // TalonFX shooterFalcon = new TalonFX(falconPort);
   //  public static final int falconPort = 5;
 
-  // Gyro
+// Gyro
   //  public static final SPI.Port kGyroPort = SPI.Port.kOnboardCS0;
 
 // DriveTrain
@@ -89,10 +90,7 @@ public class Robot extends TimedRobot {
   public double timer = 0;
 
 // Pixycam Creation
-  private Pixy2 pixycam;
-  Pixy2 pixy = Pixy2.createInstance(new SPILink());
   boolean isCamera = false;
-  // private SPILink spi;
   int state=- 1;
 
   
@@ -120,9 +118,6 @@ public void robotInit() {
 
 // Gyro Cal
   //  m_gyro.calibrate();
-
-// PixyCam Initialization
-  pixy.init();
 
 // Creating Dropdown Choices in Shuffleboard
   m_chooser.setDefaultOption("Drive Straight - Auto Line", kAutoLine);
@@ -223,35 +218,6 @@ public void teleopPeriodic() {
   // }
 // Drivetrain
   drivetrain.drive(m_joystick);
-
-// PixyCam Code
-   if(m_joystick2.getRawButton(1)){
-     pixycam.setLamp((byte) 1, (byte) 1); // Turns the LEDs on
-     pixycam.setLED(255, 255, 255); // Sets the RGB LED to full white
-   }
-   else{
-     pixycam.setLamp((byte) 0, (byte) 0);
-     pixycam.setLED(0, 0, 0);
-   }
-  
-  if (!isCamera)
-  state = pixycam.init( 1 ); // if no camera present, try to initialize
-  isCamera = state>= 0;
-  SmartDashboard.putBoolean( "Camera" , isCamera); //publish if we are connected
-  pixycam.getCCC().getBlocks( false , 255 , 255 ); //run getBlocks with arguments to have the camera acquire target data
-  ArrayList<Block> blocks = pixycam.getCCC().getBlocks(); //assign the data to an ArrayList for convenience
-  if (blocks.size() > 0 ) {
-  double xcoord = blocks.get( 0 ).getX(); // x position of the largest target
-  double ycoord = blocks.get( 0 ).getY(); // y position of the largest target
-  String data = blocks.get( 0 ).toString(); // string containing target info
-  SmartDashboard.putBoolean( "present" , true ); // show there is a target present
-    SmartDashboard.putNumber( "Xccord" ,xcoord);
-  SmartDashboard.putNumber( "Ycoord" , ycoord);
-    SmartDashboard.putString( "Data" , data );
- }
-  else
-  SmartDashboard.putBoolean( "present" , false );
-  SmartDashboard.putNumber( "size" , blocks.size()); //push to dashboard how many targets are detected
  }
 // END TELEOP PERIODIC
 
