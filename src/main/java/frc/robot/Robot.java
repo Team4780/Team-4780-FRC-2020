@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.VictorSP;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import frc.robot.vision.PixyCam;
 import frc.subsystems.DriveTrain;
@@ -33,6 +34,7 @@ import edu.wpi.first.wpilibj.Encoder;
 public class Robot extends TimedRobot {
 
 // Basic Function Instantiation
+
   // Drive VictorSP's
     VictorSP leftVictorSP = new VictorSP(leftVictorPort);
       public static final int leftVictorPort = 0;
@@ -50,13 +52,9 @@ public class Robot extends TimedRobot {
     Spark uptakeSparkTop = new Spark(uptakeSparkTopPort);
       public static final int uptakeSparkTopPort = 4;
 
-  // // Shooter Spark
-  //   Spark shooterSpark = new Spark(shooterSparkPort); 
-  //     public static final int shooterSparkPort = 2;
-
-  // // Falcon Shooter
-  //   TalonFX shooterFalcon = new TalonFX(falconPort);
-  //     public static final int falconPort = 5;
+  // Falcon Shooter
+    TalonFX shooterFalcon = new TalonFX(falconPort);
+      public static final int falconPort = 5;
 
   // Winch Sparks
     Spark winchSparkLeft = new Spark(winchSparkLeftPort);
@@ -81,10 +79,8 @@ public class Robot extends TimedRobot {
   private static final int kJoystick2Port = 1;
 
 // Button set-up
-  private static final int bShooterOuttake = 1;
-  // private static final int bUptakeTop = 2;
-  // private static final int bUptakeBottom = 3;
-  private static final int bPowerCellIntake = 4;
+  private static final int bPowerCellIntake = 1;
+  private static final int bShooterOuttake = 3;
   private static final int bWinchLeft = 7;
   private static final int bWinchRight = 8;
   private static final int bHookElevatorLeft = 0;
@@ -104,13 +100,16 @@ public class Robot extends TimedRobot {
   private Joystick m_joystick2 = new Joystick(kJoystick2Port);
 
 // Auto Choices in Shuffleboard
-  private static final String kAutoLine = "Drive Straight - Auto Line";
-  private static final String kAutoLineRight = "Drive Straight - Turn Right";
-  private static final String kAutoLineLeft = "Drive Straight - Turn Left";
-  private String m_autoSelected;
+  private static final String kInitLineShort = "Init Line, Short Run";
+  private static final String kInitLineLong = "Init Line, Long Run";
+  private static final String kInitLineShoot3 = "Init Line, Shoot 3";
+  public String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-// Timer for autonomous
+// DriveTrain Creation
+  private DifferentialDrive m_myRobot = new DifferentialDrive(leftVictorSP, rightVictorSP); 
+
+  // Timer for autonomous
   public double timer = 0;
 
 // Encoder and Encoder Level Set up
@@ -148,7 +147,7 @@ public void robotInit() {
   m_hookElevatorRightEncoder.setDistancePerPulse(Math.PI * 1.804 / 192);
 
 // Shooter Falcon Ramping Control
-  // RobotMap.shooterFalcon.configOpenloopRamp(3.5);
+  shooterFalcon.configOpenloopRamp(3.5);
 
 // Camera Instantiation
   CameraServer camera = CameraServer.getInstance();
@@ -162,24 +161,24 @@ public void robotInit() {
   //  m_gyro.calibrate();
 
 // Creating Dropdown Choices in Shuffleboard
-  m_chooser.setDefaultOption("Drive Straight - Auto Line", kAutoLine);
-  m_chooser.addOption("Drive Straight - Turn Right", kAutoLineRight);
-  m_chooser.addOption("Drive Straight - Turn Left", kAutoLineLeft);
+  m_chooser.setDefaultOption("Init Line, Short Run", kInitLineShort);
+  m_chooser.addOption("Init Line, Long Run", kInitLineLong);
+  m_chooser.addOption("Init Line, Shoot 3", kInitLineShoot3);
   SmartDashboard.putData("Auto Chooser", m_chooser);
 
 // Falcon Velocity Control
-  // shooterFalcon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
-  // shooterFalcon.setSensorPhase(true);
-  //   /* Config the peak and nominal outputs */
-  // shooterFalcon.configNominalOutputForward(0, Constants.kTimeoutMs);
-  // shooterFalcon.configNominalOutputReverse(0, Constants.kTimeoutMs);
-  // shooterFalcon.configPeakOutputForward(1, Constants.kTimeoutMs);
-  // shooterFalcon.configPeakOutputReverse(-1, Constants.kTimeoutMs);
-  //   /* Config the Velocity closed loop gains in slot0 */
-  // shooterFalcon.config_kF(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kF, Constants.kTimeoutMs);
-  // shooterFalcon.config_kP(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kP, Constants.kTimeoutMs);
-  // shooterFalcon.config_kI(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kI, Constants.kTimeoutMs);
-  // shooterFalcon.config_kD(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kD, Constants.kTimeoutMs);
+  shooterFalcon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
+  shooterFalcon.setSensorPhase(true);
+  /* Config the peak and nominal outputs */
+  shooterFalcon.configNominalOutputForward(0, Constants.kTimeoutMs);
+  shooterFalcon.configNominalOutputReverse(0, Constants.kTimeoutMs);
+  shooterFalcon.configPeakOutputForward(1, Constants.kTimeoutMs);
+  shooterFalcon.configPeakOutputReverse(-1, Constants.kTimeoutMs);
+   /* Config the Velocity closed loop gains in slot0 */
+  shooterFalcon.config_kF(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kF, Constants.kTimeoutMs);
+  shooterFalcon.config_kP(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kP, Constants.kTimeoutMs);
+  shooterFalcon.config_kI(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kI, Constants.kTimeoutMs);
+  shooterFalcon.config_kD(Constants.kPIDLoopIdx, Constants.kGains_Velocit.kD, Constants.kTimeoutMs);
 }
 
 // END ROBOT INIT METHOD
@@ -187,8 +186,8 @@ public void robotInit() {
 
 @Override
 public void robotPeriodic() {
-  SmartDashboard.putNumber("Encoder HEL Distance", m_hookElevatorLeftEncoder.getDistance());
-  SmartDashboard.putNumber("Encoder HER Distance", m_hookElevatorRightEncoder.getDistance());
+  SmartDashboard.putNumber("Encoder Hook-Left Distance", m_hookElevatorLeftEncoder.getDistance());
+  SmartDashboard.putNumber("Encoder Hook-Right Distance", m_hookElevatorRightEncoder.getDistance());
 }
 
 // END ROBOT PERIODIC METHOD6
@@ -207,14 +206,26 @@ public void autonomousPeriodic() {
 
 // Code for auto choices
   switch (m_autoSelected) {
-    case kAutoLine:
-      default:
+    case kInitLineShort:
+    default:
+    if (Timer.getMatchTime() < timer + 3) {
+      m_myRobot.tankDrive(0.25, -0.25);
+    }
+    else {
+      m_myRobot.tankDrive(0, 0);
+    }
       break;
 // ---------------------
-    case kAutoLineRight:
+    case kInitLineLong:
+    if (Timer.getMatchTime() < timer + 5) {
+      m_myRobot.tankDrive(0.25, -0.25);
+    }
+    else {
+      m_myRobot.tankDrive(0, 0);
+    }
       break;
 // ---------------------
-    case kAutoLineLeft:
+    case kInitLineShoot3:
       break;
 // ---------------------
   }
@@ -326,6 +337,13 @@ public void teleopPeriodic() {
   }
 }
 
+// Shooter Control Statements
+if(m_joystick2.getRawButton(bShooterOuttake)){
+ shooterFalcon.set(ControlMode.Position, 1);
+}
+else{
+  shooterFalcon.set(ControlMode.Position, 0);
+}
 // Gyro Math (tested & working as of 2/9/19) (old math is commented out as of 1/6/20)
 //   if(m_joystick.getRawButton(1))turned = true;
 //   if(m_joystick.getPOV() != -1){

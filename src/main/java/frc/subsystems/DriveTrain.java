@@ -2,7 +2,6 @@ package frc.subsystems;
 
 import frc.robot.Robot;
 import edu.wpi.first.wpilibj.Joystick;
-
 import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.command.Subsystem;
 
@@ -10,7 +9,6 @@ import edu.wpi.first.wpilibj.command.Subsystem;
 public class DriveTrain extends Subsystem {
 	private VictorSP leftVictorSP;
 	private VictorSP rightVictorSP;
-	public double timer = 0;
 	
     // Put methods for controlling this subsystem
     // here. Call these from Commands.

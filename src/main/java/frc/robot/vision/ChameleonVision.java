@@ -16,8 +16,8 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 public class ChameleonVision implements INetworkTablesTrackingCamera {
   NetworkTable table;
 
-  public ChameleonVision(String cameraName) {
-    table = NetworkTableInstance.getDefault().getTable("chameleon-vision").getSubTable(cameraName);
+  public ChameleonVision() {
+    table = NetworkTableInstance.getDefault().getTable("chameleon-vision").getSubTable("Microsoft LifeCam HD 3000");
   }
 
   public double getX() {
