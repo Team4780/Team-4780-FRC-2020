@@ -21,9 +21,17 @@ public class DriveTrain extends Subsystem {
 	public void drive(Joystick stick) {
 		double x = stick.getX();
 		double y = stick.getY();
+		double xReduced = stick.getX()*0.3;
+		double yReduced = stick.getY()*0.3;
 		
+		if(stick.getRawButton(2)){
+		leftVictorSP.set(xReduced-yReduced);
+		rightVictorSP.set(xReduced+yReduced);
+		}
+		else{
 		leftVictorSP.set(x-y);
 		rightVictorSP.set(x+y);
+		}
 	}
 	public void auto() {
 	}
