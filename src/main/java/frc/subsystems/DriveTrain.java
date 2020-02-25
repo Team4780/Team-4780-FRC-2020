@@ -14,8 +14,6 @@ public class DriveTrain extends Subsystem {
     // here. Call these from Commands.
 	
 	public DriveTrain() {
-		rightVictorSP = new VictorSP(Robot.rightVictorPort);
-		leftVictorSP = new VictorSP(Robot.leftVictorPort);
 	}
 	
 	public void drive(Joystick stick) {
