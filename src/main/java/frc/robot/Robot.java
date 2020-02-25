@@ -55,6 +55,9 @@ public class Robot extends TimedRobot {
   // Falcon Shooter
     TalonFX shooterFalcon = new TalonFX(falconPort);
       public static final int falconPort = 5;
+  
+  // Spark Shooter (for testing purposes)
+    Spark shooterSpark = new Spark(falconPort);
 
   // Winch Sparks
     Spark winchSparkLeft = new Spark(winchSparkLeftPort);
@@ -81,10 +84,6 @@ public class Robot extends TimedRobot {
 // Button set-up
   private static final int bPowerCellIntake = 1;
   private static final int bShooterOuttake = 3;
-  private static final int bWinchLeft = 7;
-  private static final int bWinchRight = 8;
-  private static final int bHookElevatorLeft = 0;
-  private static final int bHookElevatorRight = 0;
 
 // Gyro Instantiation 
   int P, I, D = 1;
@@ -96,8 +95,8 @@ public class Robot extends TimedRobot {
 //  private ADXRS450_Gyro m_gyro = new ADXRS450_Gyro(kGyroPort);
 
 //Joystick Instantiation
-  private Joystick m_joystick = new Joystick(kJoystickPort);
-  private Joystick m_joystick2 = new Joystick(kJoystick2Port);
+  public static Joystick m_joystick = new Joystick(kJoystickPort);
+  public static Joystick m_joystick2 = new Joystick(kJoystick2Port);
 
 // Auto Choices in Shuffleboard
   private static final String kInitLineShort = "Init Line, Short Run";
@@ -107,10 +106,11 @@ public class Robot extends TimedRobot {
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
 // DriveTrain Creation
-  private DifferentialDrive m_myRobot = new DifferentialDrive(leftVictorSP, rightVictorSP); 
+//  private DifferentialDrive m_myRobot = new DifferentialDrive(leftVictorSP, rightVictorSP); 
 
-  // Timer for autonomous
+// Timer for autonomous
   public double timer = 0;
+  Timer timer3;
 
 // Encoder and Encoder Level Set up
   public static Encoder m_hookElevatorLeftEncoder;
@@ -142,9 +142,9 @@ public void robotInit() {
 
 // Encoder Instantiation + Setup
   m_hookElevatorLeftEncoder = new Encoder(4, 5, true, Encoder.EncodingType.k4X);
-  m_hookElevatorRightEncoder = new Encoder(4, 5, true, Encoder.EncodingType.k4X);
+//  m_hookElevatorRightEncoder = new Encoder(5, 6, true, Encoder.EncodingType.k4X);
   m_hookElevatorLeftEncoder.setDistancePerPulse(Math.PI * 1.804 / 192);
-  m_hookElevatorRightEncoder.setDistancePerPulse(Math.PI * 1.804 / 192);
+//  m_hookElevatorRightEncoder.setDistancePerPulse(Math.PI * 1.804 / 192);
 
 // Shooter Falcon Ramping Control
   shooterFalcon.configOpenloopRamp(3.5);
@@ -157,7 +157,7 @@ public void robotInit() {
     VideoSource usbCam2 = camera2.startAutomaticCapture("cam1", 1);
       usbCam2.setVideoMode(PixelFormat.kYUYV, 320, 240, 30);
 
-// Gyro Cal
+// Gyro Calibration
   //  m_gyro.calibrate();
 
 // Creating Dropdown Choices in Shuffleboard
@@ -186,8 +186,8 @@ public void robotInit() {
 
 @Override
 public void robotPeriodic() {
-  SmartDashboard.putNumber("Encoder Hook-Left Distance", m_hookElevatorLeftEncoder.getDistance());
-  SmartDashboard.putNumber("Encoder Hook-Right Distance", m_hookElevatorRightEncoder.getDistance());
+//  SmartDashboard.putNumber("Encoder Hook-Left Distance", m_hookElevatorLeftEncoder.getDistance());
+//  SmartDashboard.putNumber("Encoder Hook-Right Distance", m_hookElevatorRightEncoder.getDistance());
 }
 
 // END ROBOT PERIODIC METHOD6
@@ -209,23 +209,29 @@ public void autonomousPeriodic() {
     case kInitLineShort:
     default:
     if (Timer.getMatchTime() < timer + 3) {
-      m_myRobot.tankDrive(0.25, -0.25);
+    //  m_myRobot.tankDrive(0.25, -0.25);
     }
     else {
-      m_myRobot.tankDrive(0, 0);
+    //  m_myRobot.tankDrive(0, 0);
     }
       break;
 // ---------------------
     case kInitLineLong:
     if (Timer.getMatchTime() < timer + 5) {
-      m_myRobot.tankDrive(0.25, -0.25);
+    //  m_myRobot.tankDrive(0.25, -0.25);
     }
     else {
-      m_myRobot.tankDrive(0, 0);
+    //  m_myRobot.tankDrive(0, 0);
     }
       break;
 // ---------------------
     case kInitLineShoot3:
+    if (Timer.getMatchTime() < timer + 2) {
+    //  m_myRobot.tankDrive(0.25, -0.25);
+    }
+    else {
+    //  m_myRobot.tankDrive(0, 0);
+    }
       break;
 // ---------------------
   }
@@ -264,86 +270,117 @@ public void teleopPeriodic() {
 
     if (m_joystick2.getY() < 0) {
       uptakeSparkBottom.set(0.5);
-   }
+  }
+    else {
+    uptakeSparkBottom.set(0);
+  }
     if (m_joystick2.getY() > 0) {
       uptakeSparkTop.setSpeed(0.5);
       }
+    else {
+    uptakeSparkTop.set(0);
   }
-  else {}
+}
 
 // Winch Control Statements
-  if(m_joystick2.getRawButton(bWinchLeft)) {
+  if(m_joystick2.getRawAxis(6) == -1) {
     winchSparkLeft.setSpeed(0.5);
   }
-  if(m_joystick2.getRawButton(bWinchRight)) {
+  else {
+    winchSparkLeft.set(0);
+  }
+  if(m_joystick2.getRawAxis(6) == 1) {
     winchSparkRight.setSpeed(0.5);
   }
-  else {}
+  else {
+    winchSparkRight.set(0);
+  }
 
 // Hook Elevator Control Statements
-  if(Math.abs(m_hookElevatorLeftEncoder.getDistance()-targetDistance) < 2){
-    elevatorSpeedAct = elevatorSpeedSlow;
+  boolean endgameActive = false;
+  if(Timer.getMatchTime() == 120) {
+  endgameActive = true;
   }
-  else{
-    elevatorSpeedAct = elevatorSpeedFast;
+  else {
+  endgameActive = false;
   }
+ 
+ if(endgameActive = true) {
 
-  if(Math.abs(m_hookElevatorRightEncoder.getDistance()-targetDistance) < 2){
-    elevatorSpeedAct = elevatorSpeedSlow;
-  }
-  else{
-    elevatorSpeedAct = elevatorSpeedFast;
-  }
+  // if(Math.abs(m_hookElevatorLeftEncoder.getDistance()-targetDistance) < 2){
+  //   elevatorSpeedAct = elevatorSpeedSlow;
+  // }
+  // else{
+  //   elevatorSpeedAct = elevatorSpeedFast;
+  // }
 
-  boolean elevatorButtonPressed = (m_joystick2.getRawButton(5) || m_joystick2.getRawButton(6) || m_joystick2.getRawButton(9) || m_joystick2.getRawButton(10));
+  // if(Math.abs(m_hookElevatorRightEncoder.getDistance()-targetDistance) < 2){
+  //   elevatorSpeedAct = elevatorSpeedSlow;
+  // }
+  // else{
+  //   elevatorSpeedAct = elevatorSpeedFast;
+  // }
 
-  if(m_joystick2.getRawButton(5)) {
-    targetDistance = hookElevatorLeftLvl1;
-  }
-  if(m_joystick2.getRawButton(6)) {
-    targetDistance = hookElevatorRightLvl1;
-  }  
-  if(m_joystick2.getRawButton(9)) {
-    targetDistance = hookElevatorLeftLvl2;
-  }
-  if(m_joystick2.getRawButton(10)) {
-    targetDistance = hookElevatorRightLvl2;
-  }
-  if(elevatorButtonPressed){
+  // boolean elevatorButtonPressed = (m_joystick2.getRawButton(5) || m_joystick2.getRawButton(6) || m_joystick2.getRawAxis(3) == 1 || m_joystick2.getRawAxis(3) == -1);
 
-  boolean TooLowLeft = (m_hookElevatorLeftEncoder.getDistance() - targetDistance) < -0.2;
-    boolean TooLowRight = (m_hookElevatorRightEncoder.getDistance() - targetDistance) < -0.2;
-  boolean TooHighLeft = (m_hookElevatorLeftEncoder.getDistance()-targetDistance) > 0.2;
-    boolean TooHighRight = (m_hookElevatorRightEncoder.getDistance() - targetDistance) > 0.2;
+  // if(m_joystick2.getRawAxis(3) == 1) {
+  //   targetDistance = hookElevatorLeftLvl1;
+  // }
+  // if(m_joystick2.getRawAxis(3) == -1) {
+  //   targetDistance = hookElevatorRightLvl1;
+  // }  
+  // if(m_joystick2.getRawButton(5)) {
+  //   targetDistance = hookElevatorLeftLvl2;
+  // }
+  // if(m_joystick2.getRawButton(6)) {
+  //   targetDistance = hookElevatorRightLvl2;
+  // }
+  // if(elevatorButtonPressed) {
+
+  // boolean TooLowLeft = (m_hookElevatorLeftEncoder.getDistance() - targetDistance) < -0.2;
+  //   boolean TooLowRight = (m_hookElevatorRightEncoder.getDistance() - targetDistance) < -0.2;
+  // boolean TooHighLeft = (m_hookElevatorLeftEncoder.getDistance()-targetDistance) > 0.2;
+  //   boolean TooHighRight = (m_hookElevatorRightEncoder.getDistance() - targetDistance) > 0.2;
     
-  if (TooLowLeft) {
-    hookElevatorLeftSpark.set(elevatorSpeedAct);
-  }
-  else if (TooHighRight){
-    hookElevatorLeftSpark.set(-elevatorSpeedAct*0.5);
-  }
-  else {
-    hookElevatorLeftSpark.set(elevatorSpeedStop);
-  }
+  // if (TooLowLeft) {
+  //   hookElevatorLeftSpark.set(elevatorSpeedAct);
+  // }
+  // else if (TooHighLeft){
+  //   hookElevatorLeftSpark.set(-elevatorSpeedAct*0.5);
+  // }
+  // else {
+  //   hookElevatorLeftSpark.set(elevatorSpeedStop);
+  // }
 
-  if (TooLowRight) {
-    hookElevatorRightSpark.set(elevatorSpeedAct);
-  }
-  else if (TooHighRight){
-    hookElevatorRightSpark.set(-elevatorSpeedAct*0.5);
-  }
-  else {
-    hookElevatorRightSpark.set(elevatorSpeedStop);
-  }
-}
+  // if (TooLowRight) {
+  //   hookElevatorRightSpark.set(elevatorSpeedAct);
+  // }
+  // else if (TooHighRight){
+  //   hookElevatorRightSpark.set(-elevatorSpeedAct*0.5);
+  // }
+  // else {
+  //   hookElevatorRightSpark.set(elevatorSpeedStop);
+  // }
+  // }
+  // }
+  // else {
+  // }
 
 // Shooter Control Statements
-if(m_joystick2.getRawButton(bShooterOuttake)){
- shooterFalcon.set(ControlMode.Position, 1);
-}
-else{
+  if(m_joystick2.getRawButton(bShooterOuttake)){
+  shooterFalcon.set(ControlMode.Position, 1);
+  }
+  else {
   shooterFalcon.set(ControlMode.Position, 0);
-}
+  }
+
+  if(m_joystick2.getRawButton(bShooterOuttake)){
+    shooterSpark.set(1);
+    }
+    else {
+    shooterSpark.set(0);
+    }
+  }
 // Gyro Math (tested & working as of 2/9/19) (old math is commented out as of 1/6/20)
 //   if(m_joystick.getRawButton(1))turned = true;
 //   if(m_joystick.getPOV() != -1){
@@ -357,7 +394,7 @@ else{
 
 @Override
 public void testPeriodic() {
-}
+  }
 }
 
 // END TEST PERIODIC METHOD & ROBOT PROJECT
