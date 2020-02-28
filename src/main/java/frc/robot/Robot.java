@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------------------*/
-/* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
+/* Copyright (c) 2019-2020 FIRST. All Rights Reserved.                        */
 /* Open Source Software - may be modified and shared by FRC teams. The code   */
 /* must be accompanied by the FIRST BSD license file in the root directory of */
 /* the project.                                                               */
@@ -70,6 +70,10 @@ public class Robot extends TimedRobot {
       public static final int hookElevatorSparkLeftPort = 8;
     Spark hookElevatorRightSpark = new Spark(hookElevatorSparkRightPort);
       public static final int hookElevatorSparkRightPort = 9;
+  
+  // Intake Drop Spark
+    Spark intakeDropSpark = new Spark(intakeDropSparkPort);
+      public static final int intakeDropSparkPort = 10;
 
 // Gyro
   //  public static final SPI.Port kGyroPort = SPI.Port.kOnboardCS0;
@@ -80,10 +84,19 @@ public class Robot extends TimedRobot {
 // Joystick Ports
   private static final int kJoystickPort = 0;
   private static final int kJoystick2Port = 1;
+  private static final int kEndGameJoystickPort = 2;
 
 // Button set-up
   private static final int bPowerCellIntake = 1;
   private static final int bShooterOuttake = 3;
+  private static final int bHookElevatorLeftLvl0 = 0;
+  private static final int bHookElevatorLeftLevel1 = 1;
+  private static final int bHookElevatorLeftLevel2 = 4;
+  private static final int bHookElevatorRightLvl0 = 0;
+  private static final int bHookElevatorRightLevel1 = 3;
+  private static final int bHookElevatorRightLevel2 = 2;
+  private static final int bIntakeOut = 7;
+  private static final int bIntakeIn = 8;
 
 // Gyro Instantiation 
   int P, I, D = 1;
@@ -97,6 +110,7 @@ public class Robot extends TimedRobot {
 //Joystick Instantiation
   public static Joystick m_joystick = new Joystick(kJoystickPort);
   public static Joystick m_joystick2 = new Joystick(kJoystick2Port);
+  public static Joystick m_endgameJoystick = new Joystick(kEndGameJoystickPort);
 
 // Auto Choices in Shuffleboard
   private static final String kInitLineShort = "Init Line, Short Run";
@@ -117,10 +131,12 @@ public class Robot extends TimedRobot {
   public static Encoder m_hookElevatorRightEncoder;
   boolean elevatorButtonPressed = false;
   double targetDistance = 0;
-  double hookElevatorLeftLvl1 = 0;
-  double hookElevatorLeftLvl2 = 0;
-  double hookElevatorRightLvl1 = 0;
-  double hookElevatorRightLvl2 = 0;
+  double hookElevatorLeftLvl0 = 0;
+  double hookElevatorLeftLvl1 = 2;
+  double hookElevatorLeftLvl2 = 3;
+  double hookElevatorRightLvl0 = 0;
+  double hookElevatorRightLvl1 = 2;
+  double hookElevatorRightLvl2 = 3;
 
 // Elevator Speeds
   double elevatorSpeedFast = -0.75;  // "Fast" elevator speed (In the middle)
@@ -136,6 +152,7 @@ public void robotInit() {
 // Joystick Creation
   m_joystick = new Joystick(0);
   m_joystick2 = new Joystick(1);
+  m_endgameJoystick = new Joystick(2);
 
 // DriveTrain
   drivetrain = new DriveTrain();
@@ -147,8 +164,7 @@ public void robotInit() {
 //  m_hookElevatorRightEncoder.setDistancePerPulse(Math.PI * 1.804 / 192);
 
 // Shooter Falcon Ramping Control
-  shooterFalcon.configOpenloopRamp(3.5);
-
+  shooterFalcon.configOpenloopRamp(1.5);
 // Camera Instantiation
   CameraServer camera = CameraServer.getInstance();
     VideoSource usbCam = camera.startAutomaticCapture("cam0", 0);
@@ -190,7 +206,7 @@ public void robotPeriodic() {
 //  SmartDashboard.putNumber("Encoder Hook-Right Distance", m_hookElevatorRightEncoder.getDistance());
 }
 
-// END ROBOT PERIODIC METHOD6
+// END ROBOT PERIODIC METHOD
 
 
 @Override
@@ -257,39 +273,68 @@ public void teleopPeriodic() {
 // DriveTrain
   drivetrain.drive(m_joystick);
 
-// Intake/Outtake Control Statements
+// Intake Control Statements
   if (m_joystick2.getRawButton(bPowerCellIntake)) {
    intakeSpark.set(0.5);
   } 
   else {
-    intakeSpark.set(0);
+   intakeSpark.set(0);
  }
+
+// Shooter Control Statements
+  if(m_joystick2.getRawButton(bShooterOuttake)) {
+   shooterFalcon.set(ControlMode.Position, 1);
+  }
+  else {
+   shooterFalcon.set(ControlMode.Position, 0);
+  }
+
+  if(m_joystick2.getRawButton(bShooterOuttake)) {
+   shooterSpark.set(1);
+  }
+  else {
+   shooterSpark.set(0);
+  }
 
 // Uptake Y-Axis
   if (m_joystick2.getY() < 0 || m_joystick2.getY() > 0) {
 
     if (m_joystick2.getY() < 0) {
       uptakeSparkBottom.set(0.5);
-  }
+    }
     else {
     uptakeSparkBottom.set(0);
-  }
+    }
     if (m_joystick2.getY() > 0) {
       uptakeSparkTop.setSpeed(0.5);
-      }
+    }
     else {
     uptakeSparkTop.set(0);
   }
 }
 
+// Intake Out & In Frame Perimeter
+  if(m_joystick2.getRawButton(bIntakeOut)) {
+   intakeDropSpark.set(0.5);
+  }
+  else {
+   intakeDropSpark.set(0);
+  }
+  if(m_joystick2.getRawButton(bIntakeIn)) {
+    intakeDropSpark.set(-0.5);
+  }
+  else {
+    intakeDropSpark.set(0);
+  }
+
 // Winch Control Statements
-  if(m_joystick2.getRawAxis(6) == -1) {
+  if(m_endgameJoystick.getRawButton(7)) {
     winchSparkLeft.setSpeed(0.5);
   }
   else {
     winchSparkLeft.set(0);
   }
-  if(m_joystick2.getRawAxis(6) == 1) {
+  if(m_endgameJoystick.getRawButton(8)) {
     winchSparkRight.setSpeed(0.5);
   }
   else {
@@ -307,88 +352,79 @@ public void teleopPeriodic() {
  
  if(endgameActive = true) {
 
-  // if(Math.abs(m_hookElevatorLeftEncoder.getDistance()-targetDistance) < 2){
-  //   elevatorSpeedAct = elevatorSpeedSlow;
-  // }
-  // else{
-  //   elevatorSpeedAct = elevatorSpeedFast;
-  // }
-
-  // if(Math.abs(m_hookElevatorRightEncoder.getDistance()-targetDistance) < 2){
-  //   elevatorSpeedAct = elevatorSpeedSlow;
-  // }
-  // else{
-  //   elevatorSpeedAct = elevatorSpeedFast;
-  // }
-
-  // boolean elevatorButtonPressed = (m_joystick2.getRawButton(5) || m_joystick2.getRawButton(6) || m_joystick2.getRawAxis(3) == 1 || m_joystick2.getRawAxis(3) == -1);
-
-  // if(m_joystick2.getRawAxis(3) == 1) {
-  //   targetDistance = hookElevatorLeftLvl1;
-  // }
-  // if(m_joystick2.getRawAxis(3) == -1) {
-  //   targetDistance = hookElevatorRightLvl1;
-  // }  
-  // if(m_joystick2.getRawButton(5)) {
-  //   targetDistance = hookElevatorLeftLvl2;
-  // }
-  // if(m_joystick2.getRawButton(6)) {
-  //   targetDistance = hookElevatorRightLvl2;
-  // }
-  // if(elevatorButtonPressed) {
-
-  // boolean TooLowLeft = (m_hookElevatorLeftEncoder.getDistance() - targetDistance) < -0.2;
-  //   boolean TooLowRight = (m_hookElevatorRightEncoder.getDistance() - targetDistance) < -0.2;
-  // boolean TooHighLeft = (m_hookElevatorLeftEncoder.getDistance()-targetDistance) > 0.2;
-  //   boolean TooHighRight = (m_hookElevatorRightEncoder.getDistance() - targetDistance) > 0.2;
-    
-  // if (TooLowLeft) {
-  //   hookElevatorLeftSpark.set(elevatorSpeedAct);
-  // }
-  // else if (TooHighLeft){
-  //   hookElevatorLeftSpark.set(-elevatorSpeedAct*0.5);
-  // }
-  // else {
-  //   hookElevatorLeftSpark.set(elevatorSpeedStop);
-  // }
-
-  // if (TooLowRight) {
-  //   hookElevatorRightSpark.set(elevatorSpeedAct);
-  // }
-  // else if (TooHighRight){
-  //   hookElevatorRightSpark.set(-elevatorSpeedAct*0.5);
-  // }
-  // else {
-  //   hookElevatorRightSpark.set(elevatorSpeedStop);
-  // }
-  // }
-  // }
-  // else {
-  // }
-
-// Shooter Control Statements
-  if(m_joystick2.getRawButton(bShooterOuttake)){
-  shooterFalcon.set(ControlMode.Position, 1);
+  if(Math.abs(m_hookElevatorLeftEncoder.getDistance()-targetDistance) < 2) {
+    elevatorSpeedAct = elevatorSpeedSlow;
   }
   else {
-  shooterFalcon.set(ControlMode.Position, 0);
+    elevatorSpeedAct = elevatorSpeedFast;
   }
 
-  if(m_joystick2.getRawButton(bShooterOuttake)){
-    shooterSpark.set(1);
-    }
-    else {
-    shooterSpark.set(0);
+  if(Math.abs(m_hookElevatorRightEncoder.getDistance()-targetDistance) < 2) {
+    elevatorSpeedAct = elevatorSpeedSlow;
+  }
+  else {
+    elevatorSpeedAct = elevatorSpeedFast;
+  }
+
+  boolean elevatorButtonPressed = (m_endgameJoystick.getRawButton(1) || m_endgameJoystick.getRawButton(4) || m_endgameJoystick.getRawButton(3) || m_endgameJoystick.getRawButton(2));
+
+  if(m_endgameJoystick.getRawButton(bHookElevatorLeftLvl0)) {
+    targetDistance = hookElevatorLeftLvl0;
+  }
+  if(m_endgameJoystick.getRawButton(bHookElevatorLeftLevel1)) {
+    targetDistance = hookElevatorLeftLvl1;
+  }
+  if(m_endgameJoystick.getRawButton(bHookElevatorLeftLevel2)) {
+    targetDistance = hookElevatorLeftLvl2;
+  }
+  if(m_endgameJoystick.getRawButton(bHookElevatorRightLvl0)) {
+    targetDistance = hookElevatorRightLvl0;
+  } 
+  if(m_endgameJoystick.getRawButton(bHookElevatorRightLevel1)) {
+    targetDistance = hookElevatorRightLvl1;
+  }
+  if(m_endgameJoystick.getRawButton(bHookElevatorRightLevel2)) {
+    targetDistance = hookElevatorRightLvl2;
+  }
+  if(elevatorButtonPressed) {
+
+  boolean TooLowLeft = (m_hookElevatorLeftEncoder.getDistance() - targetDistance) < -0.2;
+    boolean TooLowRight = (m_hookElevatorRightEncoder.getDistance() - targetDistance) < -0.2;
+  boolean TooHighLeft = (m_hookElevatorLeftEncoder.getDistance()-targetDistance) > 0.2;
+    boolean TooHighRight = (m_hookElevatorRightEncoder.getDistance() - targetDistance) > 0.2;
+    
+  if (TooLowLeft) {
+    hookElevatorLeftSpark.set(elevatorSpeedAct);
+  }
+  else if (TooHighLeft) {
+    hookElevatorLeftSpark.set(-elevatorSpeedAct*0.5);
+  }
+  else {
+    hookElevatorLeftSpark.set(elevatorSpeedStop);
+  }
+
+  if (TooLowRight) {
+    hookElevatorRightSpark.set(elevatorSpeedAct);
+  }
+  else if (TooHighRight) {
+    hookElevatorRightSpark.set(-elevatorSpeedAct*0.5);
+  }
+  else {
+    hookElevatorRightSpark.set(elevatorSpeedStop);
+      }
     }
   }
+  else {
+  }
+}
 // Gyro Math (tested & working as of 2/9/19) (old math is commented out as of 1/6/20)
 //   if(m_joystick.getRawButton(1))turned = true;
-//   if(m_joystick.getPOV() != -1){
+//   if(m_joystick.getPOV() != -1) {
 //   turned = false;
 //   mustTurnDegree = m_joystick.getPOV();
 //   }
 //   if(!turned)turnDegrees(mustTurnDegree);
-}
+// }
 // END TELEOP PERIODIC
 
 
