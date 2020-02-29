@@ -259,13 +259,13 @@ public void autonomousPeriodic() {
 
 
 //Gyro Math Method
-public void turnDegrees(int degree) {
-  if(turned)return;
-  angle = m_gyro.getAngle() % 360;
-  if(angle-10 > degree) m_myRobot.arcadeDrive(0.8, (angle - degree)*kP);
-  else if(angle+10 < degree) m_myRobot.arcadeDrive(0.8, (angle + degree)*kP);
-  else turned = true;
-}
+// public void turnDegrees(int degree) {
+//   if(turned)return;
+//   angle = m_gyro.getAngle() % 360;
+//   if(angle-10 > degree) m_myRobot.arcadeDrive(0.8, (angle - degree)*kP);
+//   else if(angle+10 < degree) m_myRobot.arcadeDrive(0.8, (angle + degree)*kP);
+//   else turned = true;
+// }
 
 // END GYRO MATH METHOD
 
@@ -405,14 +405,14 @@ public void teleopPeriodic() {
   }
 
 // Gyro Math (tested & working as of 2/9/19) (old math is commented out as of 1/6/20)
-  if(m_joystick.getRawButton(1))turned = true;
-  if(m_joystick.getPOV() != -1) {
-  turned = false;
-  mustTurnDegree = m_joystick.getPOV();
-  }
-  if(!turned)turnDegrees(mustTurnDegree);
+//   if(m_joystick.getRawButton(1))turned = true;
+//   if(m_joystick.getPOV() != -1) {
+//   turned = false;
+//   mustTurnDegree = m_joystick.getPOV();
+//   }
+//   if(!turned)turnDegrees(mustTurnDegree);
+// }
 }
-
 // END TELEOP PERIODIC
 
 
