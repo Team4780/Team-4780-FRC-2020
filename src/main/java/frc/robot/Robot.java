@@ -11,6 +11,7 @@ import edu.wpi.cscore.VideoMode.PixelFormat;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -26,6 +27,9 @@ import io.github.pseudoresonance.pixy2api.links.SPILink;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.Encoder;
 
 
@@ -47,36 +51,33 @@ public class Robot extends TimedRobot {
       public static final int intakeSparkPort = 2;
 
   // Uptake Sparks
-    Spark uptakeSparkBottom = new Spark(uptakeSparkBottomPort);
-      public static final int uptakeSparkBottomPort = 3;
-    Spark uptakeSparkTop = new Spark(uptakeSparkTopPort);
-      public static final int uptakeSparkTopPort = 4;
+    VictorSPX uptakeSPXBottom = new VictorSPX(uptakeSPXBottomPort);
+      public static final int uptakeSPXBottomPort = 3;
+    VictorSPX uptakeSPXTop = new VictorSPX(uptakeSPXTopPort);
+      public static final int uptakeSPXTopPort = 4;
 
   // Falcon Shooter
     TalonFX shooterFalcon = new TalonFX(falconPort);
       public static final int falconPort = 5;
-  
-  // Spark Shooter (for testing purposes)
-    Spark shooterSpark = new Spark(falconPort);
 
   // Winch Sparks
-    Spark winchSparkLeft = new Spark(winchSparkLeftPort);
-      public static final int winchSparkLeftPort = 6;
-    Spark winchSparkRight = new Spark(winchSparkRightPort);
-      public static final int winchSparkRightPort = 7;
+    VictorSPX winchSPXLeft = new VictorSPX(winchSPXLeftPort);
+      public static final int winchSPXLeftPort = 6;
+    VictorSPX winchSPXRight = new VictorSPX(winchSPXRightPort);
+      public static final int winchSPXRightPort = 7;
   
   // Hook Elevator Sparks
-    Spark hookElevatorLeftSpark = new Spark(hookElevatorSparkLeftPort);
-      public static final int hookElevatorSparkLeftPort = 8;
-    Spark hookElevatorRightSpark = new Spark(hookElevatorSparkRightPort);
-      public static final int hookElevatorSparkRightPort = 9;
+    VictorSPX hookElevatorLeftSPX = new VictorSPX(hookElevatorSPXLeftPort);
+      public static final int hookElevatorSPXLeftPort = 8;
+    VictorSPX hookElevatorRightSPX = new VictorSPX(hookElevatorSPXRightPort);
+      public static final int hookElevatorSPXRightPort = 9;
   
   // Intake Drop Spark
     Spark intakeDropSpark = new Spark(intakeDropSparkPort);
       public static final int intakeDropSparkPort = 10;
 
 // Gyro
-  //  public static final SPI.Port kGyroPort = SPI.Port.kOnboardCS0;
+  public static final SPI.Port kGyroPort = SPI.Port.kOnboardCS0;
 
 // DriveTrain
   public static DriveTrain drivetrain;
@@ -105,7 +106,7 @@ public class Robot extends TimedRobot {
   boolean turned = true;
   int mustTurnDegree = 0;
   private static final double kAngleSetpoint = 0.0;
-//  private ADXRS450_Gyro m_gyro = new ADXRS450_Gyro(kGyroPort);
+  private ADXRS450_Gyro m_gyro = new ADXRS450_Gyro(kGyroPort);
 
 //Joystick Instantiation
   public static Joystick m_joystick = new Joystick(kJoystickPort);
@@ -158,13 +159,14 @@ public void robotInit() {
   drivetrain = new DriveTrain();
 
 // Encoder Instantiation + Setup
-  m_hookElevatorLeftEncoder = new Encoder(4, 5, true, Encoder.EncodingType.k4X);
-//  m_hookElevatorRightEncoder = new Encoder(5, 6, true, Encoder.EncodingType.k4X);
-  m_hookElevatorLeftEncoder.setDistancePerPulse(Math.PI * 1.804 / 192);
-//  m_hookElevatorRightEncoder.setDistancePerPulse(Math.PI * 1.804 / 192);
+ m_hookElevatorLeftEncoder = new Encoder(4, 5, true, Encoder.EncodingType.k4X);
+ m_hookElevatorRightEncoder = new Encoder(5, 6, true, Encoder.EncodingType.k4X);
+ m_hookElevatorLeftEncoder.setDistancePerPulse(Math.PI * 1.804 / 192);
+ m_hookElevatorRightEncoder.setDistancePerPulse(Math.PI * 1.804 / 192);
 
 // Shooter Falcon Ramping Control
   shooterFalcon.configOpenloopRamp(1.5);
+
 // Camera Instantiation
   CameraServer camera = CameraServer.getInstance();
     VideoSource usbCam = camera.startAutomaticCapture("cam0", 0);
@@ -174,7 +176,7 @@ public void robotInit() {
       usbCam2.setVideoMode(PixelFormat.kYUYV, 320, 240, 30);
 
 // Gyro Calibration
-  //  m_gyro.calibrate();
+  m_gyro.calibrate();
 
 // Creating Dropdown Choices in Shuffleboard
   m_chooser.setDefaultOption("Init Line, Short Run", kInitLineShort);
@@ -202,8 +204,8 @@ public void robotInit() {
 
 @Override
 public void robotPeriodic() {
-//  SmartDashboard.putNumber("Encoder Hook-Left Distance", m_hookElevatorLeftEncoder.getDistance());
-//  SmartDashboard.putNumber("Encoder Hook-Right Distance", m_hookElevatorRightEncoder.getDistance());
+ SmartDashboard.putNumber("Encoder Hook-Left Distance", m_hookElevatorLeftEncoder.getDistance());
+ SmartDashboard.putNumber("Encoder Hook-Right Distance", m_hookElevatorRightEncoder.getDistance());
 }
 
 // END ROBOT PERIODIC METHOD
@@ -257,13 +259,13 @@ public void autonomousPeriodic() {
 
 
 //Gyro Math Method
-// public void turnDegrees(int degree) {
-//   if(turned)return;
-//   angle = m_gyro.getAngle() % 360;
-//   if(angle-10 > degree)m_myRobot.arcadeDrive(0.8, (angle - degree)*kP);
-//   else if(angle+10 < degree)m_myRobot.arcadeDrive(0.8, (angle + degree)*kP);
-//   else turned = true;
-// }
+public void turnDegrees(int degree) {
+  if(turned)return;
+  angle = m_gyro.getAngle() % 360;
+  if(angle-10 > degree) m_myRobot.arcadeDrive(0.8, (angle - degree)*kP);
+  else if(angle+10 < degree) m_myRobot.arcadeDrive(0.8, (angle + degree)*kP);
+  else turned = true;
+}
 
 // END GYRO MATH METHOD
 
@@ -281,35 +283,20 @@ public void teleopPeriodic() {
    intakeSpark.set(0);
  }
 
-// Shooter Control Statements
-  if(m_joystick2.getRawButton(bShooterOuttake)) {
-   shooterFalcon.set(ControlMode.Position, 1);
-  }
-  else {
-   shooterFalcon.set(ControlMode.Position, 0);
-  }
-
-  if(m_joystick2.getRawButton(bShooterOuttake)) {
-   shooterSpark.set(1);
-  }
-  else {
-   shooterSpark.set(0);
-  }
-
 // Uptake Y-Axis
   if (m_joystick2.getY() < 0 || m_joystick2.getY() > 0) {
 
     if (m_joystick2.getY() < 0) {
-      uptakeSparkBottom.set(0.5);
+      uptakeSPXBottom.set(ControlMode.PercentOutput, 0.5);
     }
     else {
-    uptakeSparkBottom.set(0);
+    uptakeSPXBottom.set(ControlMode.PercentOutput, 0);
     }
     if (m_joystick2.getY() > 0) {
-      uptakeSparkTop.setSpeed(0.5);
+      uptakeSPXTop.set(ControlMode.PercentOutput, 0.5);
     }
     else {
-    uptakeSparkTop.set(0);
+    uptakeSPXTop.set(ControlMode.PercentOutput, 0);
   }
 }
 
@@ -329,16 +316,16 @@ public void teleopPeriodic() {
 
 // Winch Control Statements
   if(m_endgameJoystick.getRawButton(7)) {
-    winchSparkLeft.setSpeed(0.5);
+    winchSPXLeft.set(ControlMode.PercentOutput, 0.5);
   }
   else {
-    winchSparkLeft.set(0);
+    winchSPXLeft.set(ControlMode.PercentOutput, 0);
   }
   if(m_endgameJoystick.getRawButton(8)) {
-    winchSparkRight.setSpeed(0.5);
+    winchSPXRight.set(ControlMode.PercentOutput, 0.5);
   }
   else {
-    winchSparkRight.set(0);
+    winchSPXRight.set(ControlMode.PercentOutput, 0);
   }
 
 // Hook Elevator Control Statements
@@ -386,45 +373,46 @@ public void teleopPeriodic() {
   if(m_endgameJoystick.getRawButton(bHookElevatorRightLevel2)) {
     targetDistance = hookElevatorRightLvl2;
   }
-  if(elevatorButtonPressed) {
 
+  if(elevatorButtonPressed) {
   boolean TooLowLeft = (m_hookElevatorLeftEncoder.getDistance() - targetDistance) < -0.2;
     boolean TooLowRight = (m_hookElevatorRightEncoder.getDistance() - targetDistance) < -0.2;
   boolean TooHighLeft = (m_hookElevatorLeftEncoder.getDistance()-targetDistance) > 0.2;
     boolean TooHighRight = (m_hookElevatorRightEncoder.getDistance() - targetDistance) > 0.2;
     
   if (TooLowLeft) {
-    hookElevatorLeftSpark.set(elevatorSpeedAct);
+    hookElevatorLeftSPX.set(ControlMode.PercentOutput, elevatorSpeedAct);
   }
   else if (TooHighLeft) {
-    hookElevatorLeftSpark.set(-elevatorSpeedAct*0.5);
+    hookElevatorLeftSPX.set(ControlMode.PercentOutput, -elevatorSpeedAct*0.5);
   }
   else {
-    hookElevatorLeftSpark.set(elevatorSpeedStop);
+    hookElevatorLeftSPX.set(ControlMode.PercentOutput, elevatorSpeedStop);
   }
 
   if (TooLowRight) {
-    hookElevatorRightSpark.set(elevatorSpeedAct);
+    hookElevatorRightSPX.set(ControlMode.PercentOutput, elevatorSpeedAct);
   }
   else if (TooHighRight) {
-    hookElevatorRightSpark.set(-elevatorSpeedAct*0.5);
+    hookElevatorRightSPX.set(ControlMode.PercentOutput, -elevatorSpeedAct*0.5);
   }
   else {
-    hookElevatorRightSpark.set(elevatorSpeedStop);
+    hookElevatorRightSPX.set(ControlMode.PercentOutput, elevatorSpeedStop);
       }
     }
   }
   else {
   }
-}
+
 // Gyro Math (tested & working as of 2/9/19) (old math is commented out as of 1/6/20)
-//   if(m_joystick.getRawButton(1))turned = true;
-//   if(m_joystick.getPOV() != -1) {
-//   turned = false;
-//   mustTurnDegree = m_joystick.getPOV();
-//   }
-//   if(!turned)turnDegrees(mustTurnDegree);
-// }
+  if(m_joystick.getRawButton(1))turned = true;
+  if(m_joystick.getPOV() != -1) {
+  turned = false;
+  mustTurnDegree = m_joystick.getPOV();
+  }
+  if(!turned)turnDegrees(mustTurnDegree);
+}
+
 // END TELEOP PERIODIC
 
 
