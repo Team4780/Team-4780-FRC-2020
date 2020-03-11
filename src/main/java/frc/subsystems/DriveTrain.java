@@ -23,12 +23,12 @@ public class DriveTrain extends Subsystem {
 		double yReduced = stick.getY()*0.3;
 		
 		if(stick.getRawButton(2)){
-		leftVictorSP.set(xReduced-yReduced);
-		rightVictorSP.set(xReduced+yReduced);
+		Robot.leftVictorSP.set(xReduced-yReduced);
+		Robot.rightVictorSP.set(xReduced+yReduced);
 		}
 		else{
-		leftVictorSP.set(x-y);
-		rightVictorSP.set(x+y);
+		Robot.leftVictorSP.set(x-y);
+		Robot.rightVictorSP.set(x+y);
 		}
 	}
 	public void auto() {
